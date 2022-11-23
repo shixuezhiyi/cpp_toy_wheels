@@ -7,12 +7,11 @@ using namespace std;
 
 int main()
 {
-    ClassFactory::showRegister();
-
-
-    auto a = ClassFactory::getInstance().createClass("A");
+    auto a = ClassFactory::getInstance().getClass("A");
     int age;
     a->set("m_age", 20);
     a->get("m_age", age);
     cout << age << endl;
+    a->call("f1");
+    a->call("f2", 13);
 }

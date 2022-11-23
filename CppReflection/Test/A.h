@@ -24,9 +24,10 @@ public:
         std::cout << "A:f1()" << std::endl;
     }
 
-    void f2(int a)
+    int f2(int a)
     {
-        std::cout << "A:f2( " << a << " )" << std::endl;
+        std::cout << "A:f2(" << a << ")" << std::endl;
+        return  a;
     }
 
 
@@ -37,5 +38,6 @@ public:
 
 REGISTER_CLASS(A);
 REGISTER_CLASS_Field(A,m_age,int);
-
+REGISTER_CLASS_METHOD(A,f1,void);
+REGISTER_CLASS_METHOD(A,f2,int,int);
 #endif //CPPREFLECTION_A_H

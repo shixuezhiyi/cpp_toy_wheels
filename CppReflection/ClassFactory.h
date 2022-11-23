@@ -9,11 +9,14 @@
 #include <string>
 #include <iostream>
 #include "ClassField.h"
+#include "ClassMethod.h"
+#include <functional>
 
 using std::string;
 using std::map;
 using std::cout;
 using std::endl;
+
 class ClassFactory;
 
 class Object
@@ -38,6 +41,9 @@ public:
     template<typename T>
     void set(const string &name, const T &value);
 
+    template<typename R = void, typename ...Args>
+    R call(const string &name, Args... args);
+
     virtual ~Object() = default;
 };
 
@@ -55,6 +61,7 @@ private:
 
     map<std::string, createObjectMethod> m_classMap;
     map<std::string, std::map<std::string, ClassField *>> m_classFieldMap;
+    map<string, map<string, ClassMethod *>> m_classMethodMap;
 public:
 
     ClassFactory &operator=(const ClassFactory &) = delete;
@@ -67,26 +74,19 @@ public:
         m_classMap[className] = method;
     }
 
+    void registerClassMethod(const string &className, const string &methodName, uintptr_t method)
+    {
+        std::cout << "register Class Method: " << className << "." << methodName << std::endl;
+        m_classMethodMap[className][methodName] = new ClassMethod(methodName, method);
+    }
+
     void registerClassField(const string &className, size_t offset, const string &name, const string &type)
     {
         std::cout << "register Class Field: " << className << "." << name << std::endl;
         m_classFieldMap[className][name] = new ClassField(offset, name, type);
     }
 
-    static void showRegister()
-    {
-        cout<<"Class Register: "<<endl;
-        for(auto& it:getInstance().m_classMap)
-        {
-            cout<< it.first<<": "<<endl;
-            for(auto &it2:getInstance().m_classFieldMap[it.first])
-            {
-                cout<<it2.second->getType()<<" "<<it2.second->getName();
-                cout<<"   OFFSET: "<<it2.second->getOffset()<<endl;
-            }
-            cout<<"-------------------------------"<<endl;
-        }
-    }
+
 
     static ClassFactory &getInstance()
     {
@@ -94,7 +94,7 @@ public:
         return instance;
     }
 
-    Object *createClass(const std::string &className)
+    Object *getClass(const std::string &className)
     {
         if (auto it = m_classMap.find(className);it != m_classMap.end())
         {
@@ -103,15 +103,6 @@ public:
         return nullptr;
     }
 
-
-    int getFieldCount(const string &className)
-    {
-        if (auto it = m_classFieldMap.find(className);it != m_classFieldMap.end())
-        {
-            return it->second.size();
-        }
-        return 0;
-    }
 
     ClassField *getClassField(const string &className, const string &fieldName)
     {
@@ -123,6 +114,36 @@ public:
             }
         }
         return nullptr;
+    }
+
+    ClassMethod *getClassMethod(const string &className, const string &methodName)
+    {
+        if (auto it = m_classMethodMap.find(className);it != m_classMethodMap.end())
+        {
+            if (auto it2 = it->second.find(methodName);it2 != it->second.end())
+            {
+                return it2->second;
+            }
+        }
+        return nullptr;
+    }
+
+    int getFieldCount(const string &className)
+    {
+        if (auto it = m_classFieldMap.find(className);it != m_classFieldMap.end())
+        {
+            return it->second.size();
+        }
+        return 0;
+    }
+
+    int getMethodCount(const string &className)
+    {
+        if (auto it = m_classMethodMap.find(className);it != m_classMethodMap.end())
+        {
+            return it->second.size();
+        }
+        return 0;
     }
 };
 
@@ -143,6 +164,14 @@ void Object::set(const string &name, const T &value)
 {
     auto offset = ClassFactory::getInstance().getClassField(m_className, name)->getOffset();
     *((T *) (((size_t) this) + offset)) = value;
+}
+
+template<typename R, typename ...Args>
+R Object::call(const string &name, Args... args)
+{
+    auto method = ClassFactory::getInstance().getClassMethod(m_className, name)->getMethod();
+    typedef std::function<R(decltype(this), Args...)> methodType;
+    return (*((methodType *) method))(this, args...);
 }
 
 #endif //CPPREFLECTION_CLASSFACTORY_H
