@@ -3,7 +3,7 @@
 ### Usage
 * A.h:
 ```c++
-class A : public Object
+class A : public ReflectObject
 {
 public:
     A(int age = 1, const std::string &name = "dh") : m_age(age), m_name(name)

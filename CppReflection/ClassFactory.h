@@ -19,12 +19,12 @@ using std::endl;
 
 class ClassFactory;
 
-class Object
+class ReflectObject
 {
 private:
     string m_className;
 public:
-    explicit Object(const string &className = "") : m_className(className)
+    explicit ReflectObject(const string &className = "") : m_className(className)
     {}
 
 
@@ -44,13 +44,13 @@ public:
     template<typename R = void, typename ...Args>
     R call(const string &name, Args... args);
 
-    virtual ~Object() = default;
+    virtual ~ReflectObject() = default;
 };
 
 class ClassFactory
 {
 public:
-    typedef Object *(*createObjectMethod)();
+    typedef ReflectObject *(*createObjectMethod)();
 
 private:
 
@@ -94,7 +94,7 @@ public:
         return instance;
     }
 
-    Object *getClass(const std::string &className)
+    ReflectObject *getClass(const std::string &className)
     {
         if (auto it = m_classMap.find(className);it != m_classMap.end())
         {
@@ -147,27 +147,27 @@ public:
     }
 };
 
-int Object::getFieldCount()
+int ReflectObject::getFieldCount()
 {
     return ClassFactory::getInstance().getFieldCount(m_className);
 }
 
 template<typename T>
-void Object::get(const string &name, T &value)
+void ReflectObject::get(const string &name, T &value)
 {
     auto offset = ClassFactory::getInstance().getClassField(m_className, name)->getOffset();
     value = *((T *) (((size_t) this) + offset));
 }
 
 template<typename T>
-void Object::set(const string &name, const T &value)
+void ReflectObject::set(const string &name, const T &value)
 {
     auto offset = ClassFactory::getInstance().getClassField(m_className, name)->getOffset();
     *((T *) (((size_t) this) + offset)) = value;
 }
 
 template<typename R, typename ...Args>
-R Object::call(const string &name, Args... args)
+R ReflectObject::call(const string &name, Args... args)
 {
     auto method = ClassFactory::getInstance().getClassMethod(m_className, name)->getMethod();
     typedef std::function<R(decltype(this), Args...)> methodType;

@@ -33,7 +33,7 @@ public:
 };
 
 #define REGISTER_CLASS(className)           \
-    Object * createObject##className()      \
+    ReflectObject * createObject##className()      \
     {                                       \
         auto obj =  new className(); \
         obj ->setClassName(#className);     \
