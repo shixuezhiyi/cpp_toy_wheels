@@ -1,8 +1,5 @@
 #ifndef DESIGNMODE_SINGLETON_H
 #define DESIGNMODE_SINGLETON_H
-
-#include <mutex>
-
 template<typename T>
 class Singleton
 {
