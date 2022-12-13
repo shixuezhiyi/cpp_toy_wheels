@@ -1,3 +1,5 @@
+#pragma once
+
 #include <list>
 #include <mutex>
 #include <thread>
@@ -16,13 +18,13 @@ public:
 
     void put(T &&x)
     {
-        add(std::forward(x));
+        add(std::forward<T>(x));
     }
     void take(std::list<T> &list)
     {
         std::unique_lock<std::mutex> locker(m_mutex);
         m_notEmpty.wait(locker, [this]
-                        { return m_needStop || notEmpty() ! });
+                        { return m_needStop || notEmpty(); });
         if (m_needStop)
             return;
         list = std::move(m_queue);
@@ -32,7 +34,7 @@ public:
     {
         std::unique_lock<std::mutex> locker(m_mutex);
         m_notEmpty.wait(locker, [this]
-                        { return m_needStop || notEmpty() ! });
+                        { return m_needStop || notEmpty(); });
         if (m_needStop)
             return;
         t = m_queue.front();

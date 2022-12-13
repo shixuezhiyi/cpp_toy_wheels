@@ -1,6 +1,12 @@
-# 半同步半异步线程池
-## USAGE
-``` C++
+#include <iostream>
+#include <vector>
+#include <thread>
+#include "ThreadPool.h"
+using namespace std;
+
+int main()
+{
+
     ThreadPool pool(100);
     thread thd1([&pool]()
                 {
@@ -24,4 +30,5 @@
     pool.stop();
     thd1.join();
     thd2.join();
-```
+    return 0;
+}
